@@ -1,4 +1,13 @@
 'use strict';
+// Auto-load .env for local development if present
+try {
+  const _fs = require('fs'), _path = require('path');
+  const _env = _path.join(__dirname, '.env');
+  if (typeof process.loadEnvFile === 'function' && _fs.existsSync(_env)) {
+    process.loadEnvFile(_env);
+  }
+} catch (_) {}
+
 const express = require('express');
 const http = require('http');
 const path = require('path');

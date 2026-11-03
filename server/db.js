@@ -7,6 +7,15 @@ const { Pool, types } = require('pg');
 types.setTypeParser(20, v => parseInt(v, 10));
 
 if (!process.env.DATABASE_URL) {
+  try {
+    const _env = path.join(__dirname, '.env');
+    if (typeof process.loadEnvFile === 'function' && fs.existsSync(_env)) {
+      process.loadEnvFile(_env);
+    }
+  } catch (_) {}
+}
+
+if (!process.env.DATABASE_URL) {
   console.error('\nDATABASE_URL is not set.\nSet it to your Supabase connection string (see README -> "Supabase setup") or any PostgreSQL URL.\n');
   process.exit(1);
 }
