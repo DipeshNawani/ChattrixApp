@@ -1,6 +1,6 @@
 'use strict';
 // >>> After deploying the server, put its public URL here (e.g. 'https://my-chat.onrender.com')
-const DEFAULT_SERVER = 'http://localhost:3000';
+const DEFAULT_SERVER = 'https://chattrix-server-ef22.onrender.com';
 
 const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 const STATUS_PRESETS = ['Available', 'Busy', 'Working', 'In a meeting', 'At the gym', 'Sleeping', 'Urgent calls only'];
@@ -251,7 +251,7 @@ function notify(c, m) {
     const body = (c.type !== 'direct' ? m.senderName + ': ' : '') + previewText(m);
     const n = new Notification(nameOf(c), { body });
     n.onclick = () => { window.focus(); openConv(c.id); };
-  } catch (_) {}
+  } catch (_) { }
 }
 
 function markRead(convId, messageId) {
@@ -297,8 +297,10 @@ function renderList() {
     const ll = lastLine(c);
     const isOnline = c.type === 'direct' && user(c.otherId).online;
     const open = () => openConv(c.id);
-    list.append(h('div', { class: 'conv' + (c.id === S.active ? ' active' : '') + (c.unread ? ' has-unread' : ''), role: 'button', tabindex: 0, onclick: open,
-      onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } } },
+    list.append(h('div', {
+      class: 'conv' + (c.id === S.active ? ' active' : '') + (c.unread ? ' has-unread' : ''), role: 'button', tabindex: 0, onclick: open,
+      onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }
+    },
       avatarEl(nameOf(c), avOf(c), 44, isOnline, c.type !== 'direct'),
       h('div', { class: 'body' },
         h('div', { class: 'row' }, c.type === 'channel' ? h('span', { class: 'kind', title: 'Channel' }, icon('megaphone', 14)) : null, h('div', { class: 'name' }, nameOf(c)),
@@ -453,8 +455,10 @@ function msgEl(m, c, first = true) {
   if (!m.deleted) {
     b.append(h('button', { class: 'more', 'aria-label': 'Message options', title: 'Options', onclick: e => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); showMsgMenu(m, r.left, r.bottom); } }, icon('chevron', 14)));
     if (m.reactions.length) b.append(h('div', { class: 'reactions' }, m.reactions.map(r =>
-      h('span', { class: 'react-chip' + (r.userIds.includes(S.me.id) ? ' mine' : ''), title: r.userIds.map(id => user(id).displayName).join(', '),
-        onclick: () => api.emit('msg:react', { id: m.id, emoji: r.emoji }) }, r.emoji + (r.userIds.length > 1 ? ' ' + r.userIds.length : '')))));
+      h('span', {
+        class: 'react-chip' + (r.userIds.includes(S.me.id) ? ' mine' : ''), title: r.userIds.map(id => user(id).displayName).join(', '),
+        onclick: () => api.emit('msg:react', { id: m.id, emoji: r.emoji })
+      }, r.emoji + (r.userIds.length > 1 ? ' ' + r.userIds.length : '')))));
   }
   return h('div', { class: 'msg-row ' + (mine ? 'me' : 'them') + (first ? ' first' : ''), 'data-id': m.id }, b);
 }
@@ -475,8 +479,10 @@ function pollEl(m) {
   const total = new Set(m.poll.options.flatMap(o => o.votes)).size;
   return h('div', { class: 'poll' }, h('div', { class: 'q' }, m.text),
     h('div', { class: 'hint' }, m.poll.multiple ? 'Select one or more' : 'Select one'),
-    m.poll.options.map(o => h('div', { class: 'opt' + (o.votes.includes(S.me.id) ? ' voted' : ''), role: 'button', tabindex: 0, onclick: () => api.emit('poll:vote', { messageId: m.id, optionId: o.id }),
-      onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); api.emit('poll:vote', { messageId: m.id, optionId: o.id }); } } },
+    m.poll.options.map(o => h('div', {
+      class: 'opt' + (o.votes.includes(S.me.id) ? ' voted' : ''), role: 'button', tabindex: 0, onclick: () => api.emit('poll:vote', { messageId: m.id, optionId: o.id }),
+      onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); api.emit('poll:vote', { messageId: m.id, optionId: o.id }); } }
+    },
       h('div', { class: 'bar', style: `width:${total ? Math.round(o.votes.length / total * 100) : 0}%` }), h('span', {}, o.text), h('span', {}, o.votes.length))),
     h('div', { class: 'hint' }, total + ' vote' + (total === 1 ? '' : 's') + ' · ' + m.poll.options.filter(o => o.votes.length).map(o => o.text + ': ' + o.votes.map(id => user(id).displayName.split(' ')[0]).join(', ')).join(' · ')));
 }
@@ -497,14 +503,16 @@ function showMsgMenu(m, x, y) {
   const items = [
     canSend(c) && { icon: 'reply', label: 'Reply', fn: () => { S.replyTo = m; S.editing = null; renderReplyBar(); $('#input').focus(); } },
     mine && m.type === 'text' && { icon: 'edit', label: 'Edit', fn: () => { S.editing = m; S.replyTo = null; renderReplyBar(); $('#input').value = m.text; autosize(); toggleSendMic(); $('#input').focus(); } },
-    m.text && { icon: 'copy', label: 'Copy', fn: () => navigator.clipboard.writeText(m.text).then(() => toast('Copied')).catch(() => {}) },
+    m.text && { icon: 'copy', label: 'Copy', fn: () => navigator.clipboard.writeText(m.text).then(() => toast('Copied')).catch(() => { }) },
     m.file && { icon: 'download', label: 'Download', fn: () => downloadFile(m.file) },
     (c.type === 'direct' || isAdmin(c)) && { icon: m.pinned ? 'unpin' : 'pin', label: m.pinned ? 'Unpin' : 'Pin', fn: () => req('msg:pin', { id: m.id, pin: !m.pinned }) },
     { icon: 'trash', label: 'Delete for me', fn: () => req('msg:delete', { id: m.id, scope: 'me' }) },
     (mine || (c.type !== 'direct' && isAdmin(c))) && { icon: 'trash', label: 'Delete for everyone', danger: true, fn: async () => { if (await confirmBox('Delete this message for everyone?', 'Delete', true)) req('msg:delete', { id: m.id, scope: 'all' }); } }
   ].filter(Boolean);
-  const node = h('div', { role: 'menu' }, row, items.map(i => h('div', { class: 'item' + (i.danger ? ' danger' : ''), role: 'menuitem', tabindex: 0,
-    onclick: () => { closeMenu(); i.fn(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeMenu(); i.fn(); } } }, icon(i.icon, 16), i.label)));
+  const node = h('div', { role: 'menu' }, row, items.map(i => h('div', {
+    class: 'item' + (i.danger ? ' danger' : ''), role: 'menuitem', tabindex: 0,
+    onclick: () => { closeMenu(); i.fn(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeMenu(); i.fn(); } }
+  }, icon(i.icon, 16), i.label)));
   popup(node, x, y);
 }
 
@@ -658,7 +666,7 @@ function stopRecording(send) {
       await sendFiles([file], r.convId);
     }
   };
-  try { r.rec.stop(); } catch (_) {}
+  try { r.rec.stop(); } catch (_) { }
   $('#recordBar').classList.add('hidden');
   renderComposerState();
 }
@@ -682,8 +690,10 @@ function openSearch() {
   const from = h('input', { type: 'date' }), to = h('input', { type: 'date' });
   const results = h('div', { style: 'display:flex;flex-direction:column;gap:8px' }, h('div', { class: 'sub' }, 'Type to search, or use filters.'));
   const run = debounce(async () => {
-    const f = { q: qIn.value.trim(), convId: scope.value === 'this' ? c.id : undefined, sender: +sender.value || undefined, type: type.value || undefined,
-      from: from.value ? new Date(from.value + 'T00:00:00').getTime() : undefined, to: to.value ? new Date(to.value + 'T23:59:59').getTime() : undefined };
+    const f = {
+      q: qIn.value.trim(), convId: scope.value === 'this' ? c.id : undefined, sender: +sender.value || undefined, type: type.value || undefined,
+      from: from.value ? new Date(from.value + 'T00:00:00').getTime() : undefined, to: to.value ? new Date(to.value + 'T23:59:59').getTime() : undefined
+    };
     if (!f.q && !f.sender && !f.type && !f.from && !f.to) return results.replaceChildren(h('div', { class: 'sub' }, 'Type to search, or use filters.'));
     const r = await req('search', f, true);
     if (!r.ok) return;
@@ -727,10 +737,12 @@ function newChatModal() {
   const load = debounce(async () => {
     const r = await req('users:search', { q: q.value.trim() }, true); if (!r.ok) return;
     r.users.forEach(mergeUser);
-    list.replaceChildren(...(r.users.length ? r.users.map(u => h('div', { class: 'person pick', onclick: async () => {
-      const d = await req('dm:open', { userId: u.id }); if (!d.ok) return;
-      m.close(); await ensureConv(d.convId); openConv(d.convId);
-    } }, avatarEl(u.displayName, u.avatar, 40, u.online), h('div', { class: 'grow' }, h('div', { class: 'name' }, u.displayName), h('div', { class: 'sub' }, '@' + u.username + ' · ' + (u.status || '')))))
+    list.replaceChildren(...(r.users.length ? r.users.map(u => h('div', {
+      class: 'person pick', onclick: async () => {
+        const d = await req('dm:open', { userId: u.id }); if (!d.ok) return;
+        m.close(); await ensureConv(d.convId); openConv(d.convId);
+      }
+    }, avatarEl(u.displayName, u.avatar, 40, u.online), h('div', { class: 'grow' }, h('div', { class: 'name' }, u.displayName), h('div', { class: 'sub' }, '@' + u.username + ' · ' + (u.status || '')))))
       : [h('div', { class: 'sub' }, 'No users found. Ask your friend to sign up first.')]));
   }, 250);
   q.addEventListener('input', load); load(); q.focus();
@@ -746,10 +758,14 @@ function groupModal(type) {
     type === 'channel' ? h('label', { class: 'row chk' }, pub, 'Public channel (anyone can find and join it)') : null,
     type === 'channel' ? h('div', { class: 'sub' }, 'Channels are one-to-many: only admins can post, subscribers can read and react.') : null,
     h('div', { class: 'sub' }, 'Add people'), picker.el
-  ], { actions: [h('button', { class: 'primary', onclick: async () => {
-    const r = await req('group:create', { name: name.value, description: desc.value, type, isPublic: pub.checked, memberIds: [...picker.selected.keys()] });
-    if (r.ok) { m.close(); await ensureConv(r.convId); openConv(r.convId); }
-  } }, 'Create')] });
+  ], {
+    actions: [h('button', {
+      class: 'primary', onclick: async () => {
+        const r = await req('group:create', { name: name.value, description: desc.value, type, isPublic: pub.checked, memberIds: [...picker.selected.keys()] });
+        if (r.ok) { m.close(); await ensureConv(r.convId); openConv(r.convId); }
+      }
+    }, 'Create')]
+  });
   name.focus();
 }
 
@@ -807,10 +823,14 @@ function profileModal() {
   const m = modal('Profile', [avBox, h('div', { class: 'sub', style: 'text-align:center' }, '@' + u.username + ' · click the photo to change it'),
     h('label', {}, 'Name', nm), h('label', {}, 'Status', st),
     h('div', { class: 'chips-sel' }, STATUS_PRESETS.map(p => h('span', { class: 'preset', onclick: () => { st.value = p; } }, p)))],
-    { actions: [h('button', { class: 'primary', onclick: async () => {
-      const r = await req('profile:update', { displayName: nm.value, status: st.value, avatar: avatar || '' });
-      if (r.ok) { m.close(); toast('Profile updated'); }
-    } }, 'Save')] });
+    {
+      actions: [h('button', {
+        class: 'primary', onclick: async () => {
+          const r = await req('profile:update', { displayName: nm.value, status: st.value, avatar: avatar || '' });
+          if (r.ok) { m.close(); toast('Profile updated'); }
+        }
+      }, 'Save')]
+    });
 }
 
 function settingsModal() {
@@ -819,7 +839,7 @@ function settingsModal() {
   const nt = h('input', { type: 'checkbox', checked: localStorage.getItem('notify') !== 'off' });
   nt.onchange = () => localStorage.setItem('notify', nt.checked ? 'on' : 'off');
   modal('Settings', [h('label', {}, 'Theme', theme), h('label', { class: 'row chk' }, nt, 'Desktop notifications'),
-    h('div', { class: 'sub' }, 'Server: ' + S.server)]);
+  h('div', { class: 'sub' }, 'Server: ' + S.server)]);
 }
 
 function pollModal() {
@@ -830,11 +850,15 @@ function pollModal() {
   addOpt(); addOpt();
   const multi = h('input', { type: 'checkbox' });
   const m = modal('Create poll', [h('label', {}, 'Question', q), h('label', {}, 'Options', opts), h('button', { class: 'mini', style: 'align-self:flex-start', onclick: addOpt }, '+ Add option'),
-    h('label', { class: 'row chk' }, multi, 'Allow multiple answers')],
-    { actions: [h('button', { class: 'primary', onclick: async () => {
-      const r = await req('poll:create', { convId: c.id, question: q.value, options: [...opts.children].map(i => i.value), multiple: multi.checked });
-      if (r.ok) m.close();
-    } }, 'Send poll')] });
+  h('label', { class: 'row chk' }, multi, 'Allow multiple answers')],
+    {
+      actions: [h('button', {
+        class: 'primary', onclick: async () => {
+          const r = await req('poll:create', { convId: c.id, question: q.value, options: [...opts.children].map(i => i.value), multiple: multi.checked });
+          if (r.ok) m.close();
+        }
+      }, 'Send poll')]
+    });
   q.focus();
 }
 
@@ -903,9 +927,13 @@ function buildInfo(c) {
 
 function addMembersModal(c) {
   const picker = userPicker(c.members.map(m => m.id));
-  const m = modal('Add members', picker.el, { actions: [h('button', { class: 'primary', onclick: async () => {
-    const r = await req('group:addMembers', { convId: c.id, userIds: [...picker.selected.keys()] }); if (r.ok) m.close();
-  } }, 'Add')] });
+  const m = modal('Add members', picker.el, {
+    actions: [h('button', {
+      class: 'primary', onclick: async () => {
+        const r = await req('group:addMembers', { convId: c.id, userIds: [...picker.selected.keys()] }); if (r.ok) m.close();
+      }
+    }, 'Add')]
+  });
 }
 
 /* ============================================================ menus + wiring */
@@ -934,7 +962,8 @@ window.addEventListener('beforeunload', saveDraftNow);
 
 (async function init() {
   applyTheme();
-  $('#server').value = localStorage.getItem('server') || DEFAULT_SERVER;
+  const saved = localStorage.getItem('server');
+  $('#server').value = (saved && saved !== 'http://localhost:3000') ? saved : DEFAULT_SERVER;
   $('#serverLabel').textContent = $('#server').value;
   const token = localStorage.getItem('token');
   if (token) {
