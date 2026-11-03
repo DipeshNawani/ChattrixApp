@@ -1,0 +1,54 @@
+{
+  "name": "chattrix-desktop",
+  "productName": "Chattrix",
+  "version": "2.0.0",
+  "description": "Chattrix desktop client (Electron)",
+  "author": "Dipesh Nawani",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:user2": "electron . --profile=user2",
+    "start:user3": "electron . --profile=user3",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.chattrix.app",
+    "productName": "Chattrix",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "icons.js",
+      "util.js",
+      "calls.js",
+      "app.js",
+      "fonts/**"
+    ],
+    "protocols": [
+      {
+        "name": "Chattrix invite",
+        "schemes": [
+          "chattrix"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "copyright": "Copyright © 2026 Dipesh Nawani"
+  }
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: http: https:; media-src 'self' blob: http: https:; connect-src http: https: ws: wss:" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chattrix</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="splash" class="splash"><span class="logo" data-logo data-size="48"></span><div id="splashText">Connecting…</div></div>
+
+  <!-- AUTH -->
+  <div id="auth" class="auth hidden">
+    <section class="auth-brand" aria-hidden="true">
+      <div class="brand"><span class="logo" data-logo data-size="32"></span>Chattrix</div>
+      <div>
+        <h2>Your conversations, on every desk.</h2>
+        <p class="lead">Direct chats, groups and channels, voice and video calls, files and polls. Sign in on another computer and everything is already there.</p>
+      </div>
+      <div class="preview">
+        <div class="msg-row them first"><div class="bubble"><div class="from" style="--h:200">Aarav Mehta</div><div class="text">Deploy ho gaya. Link bhej raha hoon.</div><div class="meta">18:42</div></div></div>
+        <div class="msg-row me"><div class="bubble"><div class="text">Perfect, test karke batata hoon.</div><div class="meta">18:43</div></div></div>
+      </div>
+    </section>
+    <form id="authForm" class="auth-form" autocomplete="off">
+      <h1 id="authTitle">Log in</h1>
+      <div class="tabs" role="tablist">
+        <button type="button" id="tabLogin" class="tab active" role="tab">Log in</button>
+        <button type="button" id="tabRegister" class="tab" role="tab">Sign up</button>
+      </div>
+      <label id="fieldName" class="hidden">Your name <input id="displayName" type="text" maxlength="30" placeholder="e.g. Dipesh Nawani" /></label>
+      <label>Username <input id="username" type="text" maxlength="20" placeholder="letters, numbers, _ or ." required /></label>
+      <label>Password <input id="password" type="password" placeholder="at least 6 characters" required /></label>
+      <details class="adv">
+        <summary>Server: <span id="serverLabel"></span></summary>
+        <label>Server URL <input id="server" type="text" placeholder="http://localhost:3000" required /></label>
+      </details>
+      <div id="authErr" class="error" role="alert"></div>
+      <button id="authBtn" type="submit" class="primary">Log in</button>
+    </form>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="app hidden">
+    <aside class="sidebar" aria-label="Chats">
+      <div class="side-head">
+        <div class="brand"><span class="logo" data-logo data-size="28"></span>Chattrix</div>
+        <div class="grow"></div>
+        <button id="btnNewChat" class="icon" data-icon="compose" aria-label="New chat" title="New chat"></button>
+        <button id="btnMenu" class="icon" data-icon="more" aria-label="Menu" aria-haspopup="menu" title="Menu"></button>
+      </div>
+      <div class="searchbox"><span data-icon="search" data-size="16"></span><input id="listSearch" type="text" placeholder="Search chats" aria-label="Search chats" /></div>
+      <div class="chips" role="group" aria-label="Filter chats">
+        <button class="chip active" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" data-f="unread" aria-pressed="false">Unread</button>
+        <button class="chip" data-f="groups" aria-pressed="false">Groups</button>
+      </div>
+      <div id="convList" class="conv-list"></div>
+      <button id="meRow" class="me-row" aria-label="Your profile"><span id="meAv"></span><span class="me-info"><span id="meName" class="name"></span><span id="meStatus" class="sub"></span></span></button>
+    </aside>
+
+    <main id="main" class="main">
+      <div id="welcome" class="welcome"><span class="logo" data-logo data-size="56"></span><h2>Select a chat</h2><p>Pick a conversation from the list, or start a new one.</p><p><kbd>Ctrl</kbd> <kbd>K</kbd> to search chats</p></div>
+
+      <section id="chatView" class="chat-view hidden">
+        <header class="chat-head">
+          <button id="btnBack" class="icon back" data-icon="back" aria-label="Back to chats" title="Back"></button>
+          <div id="headInfo" class="head-info clickable" role="button" tabindex="0" aria-label="Chat info"><div id="headAv"></div><div class="head-text"><div id="headName" class="name"></div><div id="headSub" class="sub"></div></div></div>
+          <div class="grow"></div>
+          <button id="btnSearch" class="icon" data-icon="search" aria-label="Search in chat" title="Search in chat"></button>
+          <button id="btnAudio" class="icon" data-icon="phone" aria-label="Voice call" title="Voice call"></button>
+          <button id="btnVideo" class="icon" data-icon="video" aria-label="Video call" title="Video call"></button>
+          <button id="btnInfo" class="icon" data-icon="info" aria-label="Chat info" title="Chat info"></button>
+        </header>
+        <div id="pinned" class="pinned hidden" role="button" tabindex="0"></div>
+        <div id="messages" class="messages" aria-label="Messages"></div>
+        <div id="sr" class="sr-only" aria-live="polite"></div>
+        <button id="toBottom" class="to-bottom hidden" data-icon="chevron" aria-label="Jump to latest message" title="Jump to latest"></button>
+        <div class="compose-area">
+          <div id="uploadTray" class="upload-tray hidden"></div>
+          <div id="replyBar" class="reply-bar hidden"></div>
+          <div id="composer" class="composer">
+            <button id="btnEmoji" class="icon" data-icon="smile" aria-label="Emoji" title="Emoji"></button>
+            <button id="btnAttach" class="icon" data-icon="clip" aria-label="Attach" aria-haspopup="menu" title="Attach"></button>
+            <textarea id="input" rows="1" placeholder="Type a message" aria-label="Message"></textarea>
+            <button id="btnMic" class="icon" data-icon="mic" aria-label="Record voice message" title="Record voice message"></button>
+            <button id="btnSend" class="icon send hidden" data-icon="send" aria-label="Send" title="Send"></button>
+          </div>
+          <div id="recordBar" class="record-bar hidden"></div>
+          <div id="noSend" class="no-send hidden"></div>
+        </div>
+        <div id="dropOverlay" class="drop-overlay hidden">Drop files to send</div>
+        <input id="fileInput" type="file" multiple class="hidden" />
+      </section>
+    </main>
+
+    <aside id="sidepanel" class="sidepanel hidden" aria-label="Side panel"></aside>
+  </div>
+
+  <!-- CALLS -->
+  <div id="callUI" class="call-ui hidden" role="dialog" aria-label="Call">
+    <video id="remoteVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay playsinline muted></video>
+    <div class="call-center"><div id="callAvatar"></div><div id="callName" class="call-name"></div><div id="callStatus" class="call-status"></div></div>
+    <div class="call-bar">
+      <button id="callMute" class="round" data-icon="mic" data-size="22" aria-label="Mute microphone" title="Mute"></button>
+      <button id="callCam" class="round" data-icon="video" data-size="22" aria-label="Turn camera off" title="Camera"></button>
+      <button id="callEnd" class="round end" data-icon="phoneOff" data-size="22" aria-label="End call" title="End call"></button>
+    </div>
+  </div>
+
+  <div id="lightbox" class="lightbox hidden"><img alt="" /></div>
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="icons.js"></script>
+  <script src="util.js"></script>
+  <script src="calls.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

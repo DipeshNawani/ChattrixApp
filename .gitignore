@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build and distribution files
+dist/
+build/
+client/dist/
+
+# Local uploaded files and server storage
+server/data/
+uploads/
+
+# Environment and sensitive keys
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Logs and OS metadata
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
